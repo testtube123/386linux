@@ -1,14 +1,15 @@
 ```
-  _______ .______          ___   ____    ____  ____     ___      __   
- /  _____||   _  \        /   \  \   \  /   / |___ \   / _ \    / /   
-|  |  __  |  |_)  |      /  ^  \  \   \/   /    __) | | (_) |  / /_   
-|  | |_ | |      /      /  /_\  \  \_    _/    |__ <   > _ <  | '_ \  
-|  |__| | |  |\  \----./  _____  \   |  |      ___) | | (_) | | (_) | 
- \______| | _| `._____/__/     \__\  |__|     |____/   \___/   \___/  
+  ____   ___    __  _      _                  
+ |___ \ / _ \  / / | |    (_)                 
+   __) | (_) |/ /_ | |     _ _ __  _   ___  __
+  |__ < > _ <| '_ \| |    | | '_ \| | | \ \/ /
+  ___) | (_) | (_) | |____| | | | | |_| |>  < 
+ |____/ \___/ \___/|______|_|_| |_|\__,_/_/\_\
+                                              
 Linux for i386 machines
 ```
 
-Gray386linux is a single-user, source-based (but binary build is provided) Linux distribution with tiny but current user space (`busybox` + `musl`).
+386linux is a single-user, source-based (but binary build is provided) Linux distribution with tiny but current user space (`busybox` + `musl`).
 Main target is a real i386 net-booted machines with at least 8 MB RAM (should work even with 4 MB RAM - and it should work when net-boot is out of a game).
 
 Used Linux kernel is 3.7.10 which should be last kernel directly support i386, however in reality some patching is needed to compile it. So I think that no one ever built/tested this kernel version for/on real i386.
@@ -35,34 +36,15 @@ i486 machines are still able to run actual Linux kernel (2024).
 NOTE FOR Pocket386 USERS!
 =========================
 
-Gray386linux runs on M6117 (386SX SOC), which is the heart of Pocket386.
+386linux runs on M6117 (386SX SOC), which is the heart of Pocket386.
 However, you need to add `i8042.dumbkbd=1` to the kernel command-line interface to disable the handling of
 keyboard LEDs in order to make the internal keyboard work.
 
-How to get a binary build?
-==========================
 
-It's easy. Just take a look at `bin` directory.
-
-Two versions of build has been cancelled because fpu version doesn't add load of bytes (~24 KB) and works on both (non fpu & fpu) machines.
-
-NOTE: gray386linux is mainly source based distribution so binaries can be older than
-current configuration.
-
-
-How to build a gray386linux
+How to build a 386linux
 ============================
 
-Tested build environments:
-
-- Fedora 40 with Nix installed.
-- NixOS 23.11.
-- Docker/podman container.
-
-**10.** [Install Nix](https://nixos.org/manual/nix/stable/installation/installing-binary.html#multi-user-installation)
-----------------------------------------------------------------------------------------------------------------------
-
-**11.** Decide how to build
+**1.** Decide how to build
 ---------------------------
 
 If you want just default build, and you have installed `make` and `bash` then
@@ -74,7 +56,7 @@ In both cases, results will be placed in `results` directory.
 In case you want to make some changes then follow next steps.
 
 
-**20.** Get num of cpus
+**2.** Get num of cpus
 -----------------------
 
 Nix-shell scripts take handle of it.
@@ -84,27 +66,19 @@ If you don't want to use `nix-shell`, just type:
 `export GR_CPUS=$(nproc --all)`
 
 
-**28.** Get kernel headers with `nix-shell`
--------------------------------------------
-
-`cd src/build-kernel-env-with-nix/`
-
-`nix-shell --pure`
-
-
-**28.** Install kernel headers
+**3.** Install kernel headers
 ------------------------------
 
 `make headers_install ARCH=i386 INSTALL_HDR_PATH=../gray386/`
 
 
-**29.** Leave nix-shell
+**4.** Leave nix-shell
 -----------------------
 
 `exit`
 
 
-**30.** Build user env with `nix-shell`
+**5.** Build user env with `nix-shell`
 ---------------------------------------
 
 `cd src/build-env-with-nix/`
@@ -112,55 +86,7 @@ If you don't want to use `nix-shell`, just type:
 `nix-shell --pure`
 
 
-**40.** Build musl libc
------------------------
-
-`CFLAGS="$CFLAGS -I$(realpath "${PWD}/../gray386/include")" ./configure --target=i386 --prefix=$(realpath "${PWD}/../gray386/")`
-
-`make -j"$GR_CPUS"`
-
-`make install`
-
-
-**50.** Build busybox
----------------------
-
-(optional) `make menuconfig`
-
-`make -j"$GR_CPUS"`
-
-`make install`
-
-
-**51.** (optional) Build dropbear SSH client (+~266 K)
-------------------------------------------------------
-
-`autoconf; autoheader`
-
-`CC="$(realpath $PWD/../gray386/bin/musl-gcc)"  ./configure --enable-static --enable-bundled-libtom --disable-syslog  --disable-harden --disable-zlib --disable-shadow --disable-utmp --disable-utmpx --disable-wtmpx --disable-loginfunc --prefix="$(realpath $PWD/../gray386/_install/)"`
-
-`make -j"$GR_CPUS"`
-
-`strip dbclient`
-
-`cp dbclient ../gray386/_install/bin`
-
-
-**59.** Leave nix-shell
------------------------
-
-`exit`
-
-
-**60.** Build kernel with `nix-shell`
--------------------------------------
-
-`cd src/build-kernel-env-with-nix/`
-
-`nix-shell --pure`
-
-
-**61.** Update `.config` in kernel directory
+**6.** Update `.config` in kernel directory
 --------------------------------------------
 
 There is mapping hidden in `.config` and you need to change it
@@ -175,7 +101,7 @@ Then you can do some other changes with:
 `make -j"$GR_CPUS" ARCH=i386 nconfig`
 
 
-**70.** In Linux kernel directory
+**7.** In Linux kernel directory
 ---------------------------------
 
 (optional) `make -j"$GR_CPUS" ARCH=i386 nconfig`
@@ -188,13 +114,13 @@ Results are in:
 `usr/initramfs_data.cpio.gz`
 
 
-**80.** Exit nix-shell
+**8.** Exit nix-shell
 ----------------------
 
 `exit`
 
 
-**81.** (optional) Test build
+**9.** (optional) Test build
 -----------------------------
 
 You need to have qemu installed.
@@ -204,10 +130,10 @@ In kernel directory just run
 `./test-build.sh`
 
 
-**90.** Cleanup build
+**10.** Cleanup build
 ---------------------
 
 `git clean -f -d -X`
 
-**100.** END
+**11.** END
 ------------
